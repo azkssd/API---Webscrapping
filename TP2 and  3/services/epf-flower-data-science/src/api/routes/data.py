@@ -2,6 +2,8 @@ from fastapi import APIRouter
 import os
 import opendatasets as od
 import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 router = APIRouter()
 
@@ -47,5 +49,31 @@ async def load_iris_dataset():
         data_json = df.to_dict(orient="records")
 
         return {"data": data_json}
+    except Exception as e:
+        return {"error": str(e)}
+    
+@router.get("/process-iris")
+async def process_iris_dataset():
+    """
+    Processes the Iris dataset by cleaning and encoding it for model training.
+    """
+    try:
+        # Check if the dataset file exists
+        if not os.path.exists(DATA_FILE):
+            return {"error": f"The dataset file was not found at {DATA_FILE}. Please download it first."}
+        
+        # Load the dataset
+        df = pd.read_csv(DATA_FILE)
+
+        # Handle missing values (if any)
+        df = df.dropna()
+
+        # Encode the target variable (species)
+        df['species'] = df['Species'].astype('category').cat.codes
+
+        return {
+            "processed_data": df.to_dict(orient="records"),
+            "message": "Data processed successfully!"
+        }
     except Exception as e:
         return {"error": str(e)}
