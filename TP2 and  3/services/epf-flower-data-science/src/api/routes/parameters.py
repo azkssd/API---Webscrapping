@@ -65,27 +65,27 @@ async def update_parameters(params: Parameters):
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 # Route to add parameters if the doc doesn't exist yet
-@router.put("/add-parameters")
-async def add_parameters(params: Parameters):
-    try:
-        # Reference to the 'parameters' document in the 'parameters' collection
-        doc_ref = db.collection('parameters').document('parameters')
+# @router.put("/add-parameters")
+# async def add_parameters(params: Parameters):
+#     try:
+#         # Reference to the 'parameters' document in the 'parameters' collection
+#         doc_ref = db.collection('parameters').document('parameters')
 
-        # Check if the document exists
-        doc = doc_ref.get()
+#         # Check if the document exists
+#         doc = doc_ref.get()
         
-        if not doc.exists:
-            # Create a new document with the provided parameters if it doesn't exist
-            doc_ref.set({
-                "n_estimators": params.n_estimators,
-                "criterion": params.criterion
-            })
-            return JSONResponse(content={"message": "Parameters added successfully"}, status_code=201)
-        else:
-            raise HTTPException(status_code=400, detail="Parameters document already exists")
+#         if not doc.exists:
+#             # Create a new document with the provided parameters if it doesn't exist
+#             doc_ref.set({
+#                 "n_estimators": params.n_estimators,
+#                 "criterion": params.criterion
+#             })
+#             return JSONResponse(content={"message": "Parameters added successfully"}, status_code=201)
+#         else:
+#             raise HTTPException(status_code=400, detail="Parameters document already exists")
 
-    except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+#     except Exception as e:
+#         return JSONResponse(content={"error": str(e)}, status_code=500)
     
 # Route to add parameters to Firestore
 @router.put("/add-parameters2")
