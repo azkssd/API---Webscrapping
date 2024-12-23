@@ -2,13 +2,7 @@ from fastapi import APIRouter
 import os
 import opendatasets as od
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
 from src.services.data import load_iris_dataset2, process_iris_dataset, split_iris_dataset, train_model
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-import joblib
-import json
 
 router = APIRouter()
 
