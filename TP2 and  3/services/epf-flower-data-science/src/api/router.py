@@ -7,11 +7,13 @@ import numpy as np
 
 from src.api.routes import hello
 from src.api.routes import data
+from src.api.routes import parameters
 
 router = APIRouter()
 
 router.include_router(hello.router, tags=["Hello"])
 router.include_router(data.router, tags=["Data"])
+router.include_router(parameters.router, tags=["Parameters"])
 
 # Define the prediction data model
 class PredictionInput(BaseModel):
