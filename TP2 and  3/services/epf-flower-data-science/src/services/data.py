@@ -5,6 +5,7 @@ import joblib
 import json
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import LabelEncoder
 
 # Define constants for file paths
 DATA_DIR = os.path.join("src", "data")
@@ -38,7 +39,11 @@ def process_iris_dataset(df):
     df = df.dropna()
 
     # Encode the target variable (species)
-    df['species'] = df['Species'].astype('category').cat.codes
+    #df['species'] = df['Species'].astype('category').cat.codes
+
+    # Encode the target variable (species)
+    label_encoder = LabelEncoder()
+    df['species'] = label_encoder.fit_transform(df['Species'])
     return df
 
 
@@ -52,7 +57,7 @@ def split_iris_dataset(df, test_size=0.2):
         tuple: X_train, X_test, y_train, y_test datasets.
     """
     # Separate features and labels
-    X = df.drop(columns=['species'])
+    X = df.drop(columns=['species', 'Species', 'Id'])  # Exclude species and the other old Species
     y = df['species']
 
     # Split the dataset
