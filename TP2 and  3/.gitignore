@@ -1,2 +1,3 @@
 *.pyc
 services/epf-flower-data-science/kaggle.json
+services/epf-flower-data-science/firebase_credentials.json
