@@ -1,8 +1,8 @@
-from fastapi import APIRouter
+from fastapi import FastAPI, APIRouter
 
 import firebase_admin
 from firebase_admin import credentials, firestore
-from flask import jsonify
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
@@ -27,9 +27,9 @@ def get_parameters():
         
         if doc.exists:
             parameters = doc.to_dict()  # Get data as dictionary
-            return jsonify(parameters), 200
+            return JSONResponse(content=parameters, status_code=200)
         else:
-            return jsonify({"error": "Parameters document not found"}), 404
+            return JSONResponse(content={"error": "Parameters document not found"}, status_code=404)
             
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return JSONResponse(content={"error": str(e)}, status_code=500)
