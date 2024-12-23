@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from src.services.data import load_iris_dataset, process_iris_dataset, split_iris_dataset
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
@@ -91,12 +92,12 @@ async def split_iris_route(test_size: float = 0.2):
         # Split the dataset
         X_train, X_test, y_train, y_test = split_iris_dataset(processed_df, test_size)
 
-        return {
+        return JSONResponse(content={
             "X_train": X_train.to_dict(orient="records"),
             "X_test": X_test.to_dict(orient="records"),
             "y_train": y_train.tolist(),
             "y_test": y_test.tolist(),
             "message": "Data split successfully!"
-        }
+        })
     except Exception as e:
-        return {"error": str(e)}
+        return JSONResponse(content={"error": str(e)}, status_code=500)
