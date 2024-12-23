@@ -13,6 +13,11 @@ DATA_DIR = "src/data"
 # Define the path of the saved Iris.csv
 DATA_FILE = os.path.join("src/data/iris/Iris.csv")
 
+# Define the directory to save the trainning model
+MODEL_DIR = os.path.join("src", "models")
+# Define the path to the parameters for the model
+CONFIG_PATH = os.path.join("src", "config", "model_parameters.json")
+
 # Create a route to download the dataset
 @router.get("/download-iris")
 async def download_iris_dataset():
@@ -97,6 +102,58 @@ async def split_iris_route(test_size: float = 0.2):
             "y_train": y_train.tolist(),
             "y_test": y_test.tolist(),
             "message": "Data split successfully!"
+        }
+    except Exception as e:
+        return {"error": str(e)}
+    
+@router.get("/train-iris")
+async def train_iris_model(data: dict):
+    """
+    Trains a RandomForestClassifier model on the provided dataset.
+    Args:
+        data (dict): The processed dataset in JSON format.
+    Returns:
+        dict: Training results and the path of the saved model.
+    """
+    try:
+        # Convert JSON data to a DataFrame
+        df = pd.DataFrame(data["data"])
+        
+        # Ensure the 'species' column exists (target variable)
+        if 'species' not in df.columns:
+            return {"error": "'species' column is required in the dataset."}
+        
+        # Split features (X) and target (y)
+        X = df.drop(columns=['species'])
+        y = df['species']
+        
+        # Split into training and testing datasets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        # Load model parameters
+        if not os.path.exists(CONFIG_PATH):
+            return {"error": f"Model configuration file not found at {CONFIG_PATH}."}
+        
+        with open(CONFIG_PATH, "r") as config_file:
+            model_params = json.load(config_file)
+        
+        # Train the model
+        model = RandomForestClassifier(**model_params)
+        model.fit(X_train, y_train)
+        
+        # Evaluate the model
+        y_pred = model.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        
+        # Save the trained model
+        os.makedirs(MODEL_DIR, exist_ok=True)
+        model_path = os.path.join(MODEL_DIR, "iris_model.joblib")
+        joblib.dump(model, model_path)
+        
+        return {
+            "message": "Model trained and saved successfully!",
+            "model_path": model_path,
+            "accuracy": accuracy
         }
     except Exception as e:
         return {"error": str(e)}
