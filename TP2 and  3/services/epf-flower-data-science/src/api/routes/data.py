@@ -4,7 +4,11 @@ import opendatasets as od
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from src.services.data import load_iris_dataset2, process_iris_dataset, split_iris_dataset
+from src.services.data import load_iris_dataset2, process_iris_dataset, split_iris_dataset, train_model
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import joblib
+import json
 
 router = APIRouter()
 
@@ -12,11 +16,6 @@ router = APIRouter()
 DATA_DIR = "src/data"
 # Define the path of the saved Iris.csv
 DATA_FILE = os.path.join("src/data/iris/Iris.csv")
-
-# Define the directory to save the trainning model
-MODEL_DIR = os.path.join("src", "models")
-# Define the path to the parameters for the model
-CONFIG_PATH = os.path.join("src", "config", "model_parameters.json")
 
 # Create a route to download the dataset
 @router.get("/download-iris")
@@ -107,53 +106,32 @@ async def split_iris_route(test_size: float = 0.2):
         return {"error": str(e)}
     
 @router.get("/train-iris")
-async def train_iris_model(data: dict):
+async def train_iris_model(test_size: float = 0.2):
     """
-    Trains a RandomForestClassifier model on the provided dataset.
+    Trains a RandomForestClassifier model using the Iris dataset.
+    The dataset is loaded, processed, split, and then used for training.
     Args:
-        data (dict): The processed dataset in JSON format.
+        test_size (float): Proportion of the dataset to include in the test split.
     Returns:
         dict: Training results and the path of the saved model.
     """
     try:
-        # Convert JSON data to a DataFrame
-        df = pd.DataFrame(data["data"])
+        # Ensure the dataset file exists
+        if not os.path.exists(DATA_FILE):
+            return {"error": f"The dataset file was not found at {DATA_FILE}. Please download it first."}
         
-        # Ensure the 'species' column exists (target variable)
-        if 'species' not in df.columns:
-            return {"error": "'species' column is required in the dataset."}
+        # Step 1: Load the dataset
+        df = load_iris_dataset2()
         
-        # Split features (X) and target (y)
-        X = df.drop(columns=['species'])
-        y = df['species']
+        # Step 2: Process the dataset
+        processed_df = process_iris_dataset(df)
         
-        # Split into training and testing datasets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        # Step 3: Split the dataset
+        X_train, X_test, y_train, y_test = split_iris_dataset(processed_df, test_size)
         
-        # Load model parameters
-        if not os.path.exists(CONFIG_PATH):
-            return {"error": f"Model configuration file not found at {CONFIG_PATH}."}
-        
-        with open(CONFIG_PATH, "r") as config_file:
-            model_params = json.load(config_file)
-        
-        # Train the model
-        model = RandomForestClassifier(**model_params)
-        model.fit(X_train, y_train)
-        
-        # Evaluate the model
-        y_pred = model.predict(X_test)
-        accuracy = accuracy_score(y_test, y_pred)
-        
-        # Save the trained model
-        os.makedirs(MODEL_DIR, exist_ok=True)
-        model_path = os.path.join(MODEL_DIR, "iris_model.joblib")
-        joblib.dump(model, model_path)
-        
-        return {
-            "message": "Model trained and saved successfully!",
-            "model_path": model_path,
-            "accuracy": accuracy
-        }
+        # Step 4: Train the model using the helper function
+        result = train_model(X_train, X_test, y_train, y_test)
+
+        return result
     except Exception as e:
         return {"error": str(e)}
