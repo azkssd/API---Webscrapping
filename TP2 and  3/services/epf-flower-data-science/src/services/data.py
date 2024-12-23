@@ -8,7 +8,7 @@ DATA_DIR = os.path.join("src", "data")
 DATA_FILE = os.path.join(DATA_DIR, "iris", "Iris.csv")
 
 
-def load_iris_dataset():
+def load_iris_dataset2():
     """
     Loads the Iris dataset from the saved CSV file.
     Returns:
